@@ -1,12 +1,46 @@
-# Interview-Question & Answer （初级篇）
 
+# Interview-Question & Answer 
+
+
+
+### 初级篇完结
+起初乍一看感觉问题并不是很多，通过总结才发现面试官的准备十分充分，涵盖了很多方面，在总结的过程中，我也等于是复习了一遍。
+
+目前针对初级篇的问题大致总结了一下，我看了中级以及高级的题目，**大致分为以下几类**：
+
+* **Runtime**  [参考文章即可](http://yulingtianxia.com/blog/2014/11/05/objective-c-runtime/)
+* **RunLoop**  [参考文章即可](https://blog.ibireme.com/2015/05/18/runloop/)
+* **Block**    [参考文章即可](https://www.jianshu.com/p/14efa33b3562)
+* **KVC & KVO** [我的另一篇文章](https://github.com/liberalisman/KVC-KVO)
+* **三方框架的源代码解析（AFN、SDWebImage...)**
+* **数据结构**
+
+**再加上是基础题目里也有很多值得拓展的问题**
+
+* **内存管理**
+* **数据持久化**
+* **多线程**
+* **属性修饰符**
+* **内存语义。。。。**
+
+
+关于中高级的问题，我会接下来做仔细的分析，我心里并没有十足的把握，或许上面的回答也是漏洞百出，但是希望各位同行能多多指教，指出我的不足，在此先行谢过。
+
+在整理这篇答案的时候，借鉴了很多网上的资料，很杂，也很难一一列出。
+
+
+喵神的关于`storyBoard`那篇
+
+链接在此：[再看关于 Storyboard 的一些争论](https://onevcat.com/2017/04/storyboard-argue/)
+
+-----------------------
 此篇是根据知名博主 [J-Knight](http://weibo.com/u/1929625262?from=feed&loc=nickname) 所提供的面试题目，所整理的答案，感谢 [J-Knight](http://weibo.com/u/1929625262?from=feed&loc=nickname) 的分享，[点击查看原文。](https://juejin.im/post/5938dfdb8d6d810058481572?utm_source=weibo&utm_campaign=user。) 
 
 另外，我写此文的目的在于和广大的`iOS`开发者进行沟通交流，里面的内容有自己的理解，也有很大一部分参照网上的解释。很感谢之前的分享者，文末会附上相关的链接。如果在本文有理解不正确的地方，也希望大家多多指正。
 
 面试题分为三个部分，我们先从基础开始。
 
-[TOC]
+
 
 ## 基础
 ### 1. 为什么说Objective-C是一门动态的语言？
@@ -22,10 +56,11 @@
 ##### MVC
 ![](http://image.beekka.com/blog/2015/bg2015020105.png)
 
-**`MVC`模式所有的模块通信都是单向的**
-    1. `View`传递指令给`Controller`
-    2. `Controller` 完成业务逻辑后，要求 `Model` 改变状态
-    3. `Model` 将新的数据发送到 `View`，用户得到反馈
+**`MVC`模式所有的模块通信都是单向的**（这一点个人持怀疑态度，希望大家提出意见）
+
+1. `View`传递指令给`Controller`
+2. `Controller` 完成业务逻辑后，要求 `Model` 改变状态
+3. `Model` 将新的数据发送到 `View`，用户得到反馈
 
 **还有一种是`Controller`直接接受指令**
 
@@ -92,10 +127,18 @@
 
 
 ##### 3.属性的默认关键字:
+在 ARC 下，如果如果修饰的是 **Objective-C** 对象。
 
 ```objc
 @property (atomic，strong,readwrite) UIView *view;
 ```
+如果如果修饰的是基本数据类型。
+
+```objc
+@property (atomic，assign,readwrite) int num;
+```
+
+
 
 ##### 4.“自动合成”( autosynthesis)
 
@@ -139,11 +182,55 @@
 
 ### 5.NSString为什么要用copy关键字，如果用strong会有什么问题？
 
-`NSString`有可变的子类`NSMutableString`。因为父类指针可以指向子类，所以避免`NSMutableString`给`NSString`赋值，所以用`Copy`修饰。
+`NSString`有可变的子类`NSMutableString`。因为父类指针可以指向子类，避免`NSMutableString`给`NSString`赋值，造成原有的值被无形修改，所以用`Copy`修饰。
 
-`Copy`作为指针拷贝，是浅拷贝，保证了内容不会发生变化。此时如果使用`Strong`会在内存中新复制出一份。
+我们修饰 `NSString` 使用 `Copy` 关键字。
 
-但是如果可以保证，传过来的形参肯定不是`NSMutableString`的话，那么用`Strong`就可以，因为避免了`Copy`一次，反而提高了效率。
+* 如果传进来的也是 `NSString`类型，这时候`Copy`作为指针拷贝，是浅拷贝，内容不会发生变化。
+
+* 如果传进来的是 `NSMutableString`类型，这时候`Copy`作为内容拷贝，是深拷贝，在内存中新开辟出一块儿新的地址，防止原有的值被改变。
+
+--------
+以上是我之前的回答，热心网友对此问题作了完善的补充
+
+> NSString 使用 copy 和它的子类并没有关系，而且凡是 NSObject 都有 copy 方法，并不是 NSString 独有。
+
+如下代码：
+
+```objc
+NSString *string = @"测试数据";
+NSString *copyString = [string copy]；
+NSMutableString *mutableCopyString = [string mutableCopy];
+NSMutableString *copyMutableString = [string copy];
+NSLog(@"%p,%p,%p,%p", string, copyString, mutableCopyString, copyMutableString);
+```
+
+输出它们的地址，`string` 和 `copyString` 的地址是相同的，说明它们的指针指向同一个地址，也就是说 `copy` 是浅拷贝，即`指针拷贝`；`mutableCopyString` 和其他的地址都不一样，说明新开辟了一块内存空间，也就是和前两个没有任何关系，也就是说 `mutableCopy` 发生了`深拷贝`；
+
+`copyMutableString` 和其他的地址也不一样，同 `mutableCopyString` ，也是发生了`深拷贝`。
+
+对于 `copyString` 和 `copyMutableString` 同是使用的 `copy`，但是地址却不一样，是因为苹果对于不可变的对象执行的引用操作，而对于可变对象，相对于之前的不可变对象，那么地址肯定会不一样，所以这个时候就要拷贝一份，和之前的就没有任何关系了。
+
+还有就是属性中的 copy 关键字，如下代码：
+
+```objc
+@property (nonatomic, copy) NSString *copyString;
+@property (nonatomic, strong) NSString *strongString;
+```
+
+对于上面的代码，`copyString` 和 `strongString` 的 `set` 方法中，
+
+```objc
+-(void)setCopyString:(NSString *)copyString {
+    _copyString = [copyString copy];  // 调用 copy 方法，所以并不是直接赋值
+}
+-(void)setStrongString:(NSString *)strongString {
+    _strongString = strongString;  // 直接引用
+}
+```
+
+如果想要外界赋值的值对 `string` 有影响，那么就用 `strong`，这样两者相当于还是一个对象，如果在赋值以后不想要外界再对 `string` 有影响，那么就用 `copy`。也就是说用 `strong` 还是 `copy` 可以根据情况而定。
+
 
 ### 6.如何令自己所写的对象具有拷贝功能?
 
@@ -365,6 +452,7 @@
     dispatch_group_leave(group);//异步block中，所有的任务都执行完毕，最后离开群组
     //注意：dispatch_group_enter|dispatch_group_leave必须成对使用
 ```
+#####     6.信号量（并发编程中很有用）
 
 ### 15.如何使用队列来避免资源抢夺？
 
@@ -376,8 +464,8 @@
 * plist文件（属性列表）
 * preference（偏好设置）
 * NSKeyedArchiver（归档）
-* SQLite 3
-* CoreData（FMDB）
+* SQLite 3 （FMDB）
+* CoreData
 
 在此不展开了，篇幅比较大，详情见我[另一篇文章](https://github.com/liberalisman/iOS-Summary-Part1#08-ios数据持久化方案)
 
@@ -432,6 +520,13 @@
 4. `NSCache`线程是安全的。
 
 ### 19.知不知道Designated Initializer？使用它的时候有什么需要注意的问题？
+
+基本遵循以下三个规则(约束条件)
+
+   1. 子类如果有指定初始化函数，那么指定初始化函数实现时必须调用它的直接父类的指定初始化函数。
+   2. 如果子类有指定初始化函数，那么便利初始化函数必须调用自己的其它初始化函数(包括指定初始化函数以及其他的便利初始化函数)，不能调用super的初始化
+      函数。
+   3. 如果子类提供了指定初始化函数，那么一定要实现所有父类的指定初始化函数。
 
 这个问题没有想好该如何回答，希望大家指教。
 
@@ -505,41 +600,9 @@ Objective-C使用`AEC自动引用计数`来有效的管理内存。
 
 `Retain`,`Copy`,`Alloc`,`New`等必然对应`Release`。
 
-### 初级篇完结
-起初乍一看感觉问题并不是很多，通过总结才发现面试官的准备十分充分，涵盖了很多方面，在总结的过程中，我也等于是复习了一遍。
-
-目前针对初级篇的问题大致总结了一下，我看了中级以及高级的题目，**大致分为以下几类**：
-
-* **Runtime**
-* **RunLoop**
-* **Block**
-* **KVC & KVO**
-* **三方框架的源代码解析（AFN、SDWebImage...)**
-* **数据结构**
-
-**再加上是基础题目里也有很多值得拓展的问题**
-
-* **内存管理**
-* **数据持久化**
-* **多线程**
-* **属性修饰符**
-* **内存语义。。。。**
 
 
-关于中高级的问题，我会每个话题单独开一篇来做仔细的分析，我心里并没有十足的把握，或许上面的回答也是漏洞百出，但是希望各位同行能多多指教，指出我的不足，在此先行谢过。
 
-再次感谢 [J-Knight](http://weibo.com/u/1929625262?from=feed&loc=nickname) 童鞋准备的面试题，针对你的题目，写一篇答案，有些唐突，望见谅。
-
-
-在整理这篇答案的时候，借鉴了很多网上的资料，很杂，也很难一一列出。
-
-但是关于**MVC** 和 **MVVM**，**MVP**模式的那篇，借鉴了阮一峰老师的一篇文章，写的浅显易懂，十分不错。
-
-链接在此：[MVC，MVP 和 MVVM 的图示](http://www.ruanyifeng.com/blog/2015/02/mvcmvp_mvvm.html)
-
-还有喵神的关于`storyBoard`那篇
-
-链接在此：[再看关于 Storyboard 的一些争论](https://onevcat.com/2017/04/storyboard-argue/)
 
 
 
